@@ -1,5 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import {
+  getHoldingMarketValue,
+  getHoldingProfitLoss,
+  getPortfolioSummary,
+} from '../app/portfolioCalculations';
 import type { PortfolioHolding } from '../types/portfolio';
 import { formatCurrency } from '../utils/formatCurrency';
 
@@ -10,21 +15,45 @@ type PortfolioSummaryCardProps = {
 export function PortfolioSummaryCard({
   holdings,
 }: PortfolioSummaryCardProps) {
-  const totalValue = holdings.reduce((total, holding) => total + holding.value, 0);
+  const summary = getPortfolioSummary(holdings);
 
   return (
     <View style={styles.card}>
-      <Text style={styles.label}>TOTAL VALUE</Text>
-      <Text style={styles.total}>{formatCurrency(totalValue)}</Text>
+      <Text style={styles.label}>MARKET VALUE</Text>
+      <Text style={styles.total}>{formatCurrency(summary.marketValue)}</Text>
+      <Text style={[styles.profitLoss, summary.profitLoss < 0 ? styles.lossText : styles.gainText]}>
+        {summary.profitLoss >= 0 ? '+' : ''}
+        {formatCurrency(summary.profitLoss)} profit/loss
+      </Text>
 
       <View style={styles.divider} />
 
-      {holdings.map((holding) => (
-        <View key={holding.id} style={styles.row}>
-          <Text style={styles.name}>{holding.name}</Text>
-          <Text style={styles.value}>{formatCurrency(holding.value)}</Text>
-        </View>
-      ))}
+      {holdings.length === 0 ? (
+        <Text style={styles.emptyText}>No holdings saved yet.</Text>
+      ) : (
+        holdings.map((holding) => {
+          const marketValue = getHoldingMarketValue(holding);
+          const profitLoss = getHoldingProfitLoss(holding);
+
+          return (
+            <View key={holding.id} style={styles.row}>
+              <View style={styles.holdingText}>
+                <Text style={styles.name}>{holding.ticker}</Text>
+                <Text style={styles.detail}>
+                  {holding.quantity} x {formatCurrency(holding.currentPrice)}
+                </Text>
+              </View>
+              <View style={styles.valueGroup}>
+                <Text style={styles.value}>{formatCurrency(marketValue)}</Text>
+                <Text style={[styles.detail, profitLoss < 0 ? styles.lossText : styles.gainText]}>
+                  {profitLoss >= 0 ? '+' : ''}
+                  {formatCurrency(profitLoss)}
+                </Text>
+              </View>
+            </View>
+          );
+        })
+      )}
     </View>
   );
 }
@@ -49,6 +78,17 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
   },
+  profitLoss: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  gainText: {
+    color: '#287247',
+  },
+  lossText: {
+    color: '#B42318',
+  },
   divider: {
     height: 1,
     marginVertical: 24,
@@ -59,15 +99,31 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  name: {
+  holdingText: {
     flex: 1,
+  },
+  name: {
     color: '#3C4941',
     fontSize: 15,
+    fontWeight: '700',
+  },
+  detail: {
+    marginTop: 4,
+    color: '#718078',
+    fontSize: 12,
+  },
+  valueGroup: {
+    alignItems: 'flex-end',
+    marginLeft: 16,
   },
   value: {
-    marginLeft: 16,
     color: '#142018',
     fontSize: 15,
     fontWeight: '600',
+  },
+  emptyText: {
+    color: '#607067',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

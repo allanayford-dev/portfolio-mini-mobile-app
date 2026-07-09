@@ -29,7 +29,7 @@ export default function App() {
           <ActivityIndicator color="#41644A" />
         </View>
       ) : user ? (
-        <HomeScreen userEmail={user.email} />
+        <HomeScreen userEmail={user.email} userId={user.uid} />
       ) : (
         <AuthScreen />
       )}

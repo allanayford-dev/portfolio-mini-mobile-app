@@ -11,6 +11,7 @@
   },
   "include": [
     "app/authValidation.ts",
+    "app/portfolioCalculations.ts",
     "tests/**/*.test.ts"
   ]
 }
