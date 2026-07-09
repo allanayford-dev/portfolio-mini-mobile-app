@@ -1,6 +1,8 @@
 node_modules/
+.pnpm-store/
 .expo/
 dist/
+dist-validation*/
 .env
 .env.*
 !.env.example
