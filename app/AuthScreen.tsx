@@ -15,6 +15,7 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 
+import { validateAuthCredentials } from './authValidation';
 import { auth, isFirebaseConfigured, missingFirebaseConfigKeys } from './firebase';
 
 type AuthMode = 'sign-in' | 'sign-up';
@@ -35,10 +36,17 @@ export function AuthScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isSignUp = mode === 'sign-up';
-  const canSubmit = Boolean(auth) && email.trim().length > 0 && password.length >= 6;
+  const validation = validateAuthCredentials(email, password);
+  const canSubmit = Boolean(auth) && validation.isValid;
 
   async function handleSubmit() {
-    if (!auth || !canSubmit) {
+    const validationResult = validateAuthCredentials(email, password);
+
+    if (!auth || !validationResult.isValid) {
+      if (auth) {
+        setErrorMessage(validationResult.errors[0]?.message ?? null);
+      }
+
       return;
     }
 
@@ -46,12 +54,14 @@ export function AuthScreen() {
     setIsSubmitting(true);
 
     try {
-      const normalizedEmail = email.trim();
-
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+        await createUserWithEmailAndPassword(
+          auth,
+          validationResult.normalizedEmail,
+          password,
+        );
       } else {
-        await signInWithEmailAndPassword(auth, normalizedEmail, password);
+        await signInWithEmailAndPassword(auth, validationResult.normalizedEmail, password);
       }
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error));
