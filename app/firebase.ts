@@ -1,5 +1,6 @@
 import { getApp, getApps, initializeApp, type FirebaseOptions } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -23,14 +24,27 @@ export const missingFirebaseConfigKeys = requiredConfigKeys.filter(
 
 export const isFirebaseConfigured = missingFirebaseConfigKeys.length === 0;
 
+const firebaseApp = isFirebaseConfigured
+  ? getApps().length > 0
+    ? getApp()
+    : initializeApp(firebaseConfig)
+  : null;
+
 function createAuth(): Auth | null {
   if (!isFirebaseConfigured) {
     return null;
   }
 
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  return getAuth(firebaseApp!);
+}
 
-  return getAuth(app);
+function createDb(): Firestore | null {
+  if (!isFirebaseConfigured) {
+    return null;
+  }
+
+  return getFirestore(firebaseApp!);
 }
 
 export const auth = createAuth();
+export const db = createDb();
