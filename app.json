@@ -7,6 +7,11 @@
     "userInterfaceStyle": "light",
     "android": {
       "package": "com.allanayford.portfoliomini"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "54faa97b-445f-4071-bbfd-7c5ffa27fb4c"
+      }
     }
   }
 }
